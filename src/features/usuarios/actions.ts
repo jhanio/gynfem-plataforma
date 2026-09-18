@@ -1,0 +1,127 @@
+"use server";
+
+import { randomBytes } from "node:crypto";
+import { revalidatePath } from "next/cache";
+
+import { requireRol } from "@/lib/auth/guards";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { fallo, ok, type Resultado } from "@/lib/resultado";
+import {
+  activarUsuarioSchema,
+  cambiarRolSchema,
+  crearUsuarioSchema,
+} from "./schemas";
+import { validarActivacion, validarCambioRol } from "./anti-bloqueo";
+
+/** Genera una contraseña temporal robusta. Solo se muestra una vez al admin. */
+function generarPasswordTemporal(): string {
+  return `Gy${randomBytes(9).toString("base64url")}!9`;
+}
+
+/**
+ * Crea un usuario interno con rol y contraseña temporal.
+ * El rol se pasa en app_metadata (fuente del rol inicial en el trigger).
+ * Devuelve la contraseña temporal para mostrarla una sola vez.
+ */
+export async function crearUsuario(
+  input: unknown,
+): Promise<Resultado<{ passwordTemporal: string }>> {
+  await requireRol("admin");
+
+  const parsed = crearUsuarioSchema.safeParse(input);
+  if (!parsed.success) {
+    return fallo("Revisa los campos marcados.");
+  }
+
+  const passwordTemporal = generarPasswordTemporal();
+  const admin = createAdminClient();
+
+  const { error } = await admin.auth.admin.createUser({
+    email: parsed.data.email,
+    password: passwordTemporal,
+    email_confirm: true,
+    user_metadata: { nombre_completo: parsed.data.nombreCompleto },
+    app_metadata: { rol: parsed.data.rol },
+  });
+
+  if (error) {
+    if (
+      error.code === "email_exists" ||
+      error.status === 422 ||
+      /already/i.test(error.message)
+    ) {
+      return fallo("Ya existe un usuario con ese correo.");
+    }
+    return fallo("No se pudo crear el usuario.");
+  }
+
+  revalidatePath("/admin/usuarios");
+  return ok({ passwordTemporal });
+}
+
+/** Cambia el rol de un usuario (con la sesión del admin, para auditar el actor). */
+export async function cambiarRol(input: unknown): Promise<Resultado<null>> {
+  const actor = await requireRol("admin");
+
+  const parsed = cambiarRolSchema.safeParse(input);
+  if (!parsed.success) {
+    return fallo("Datos no válidos.");
+  }
+
+  const guard = validarCambioRol({
+    actorId: actor.id,
+    objetivoId: parsed.data.usuarioId,
+    nuevoRol: parsed.data.rol,
+  });
+  if (!guard.ok) {
+    return guard;
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ rol: parsed.data.rol })
+    .eq("id", parsed.data.usuarioId);
+
+  if (error) {
+    return fallo("No se pudo cambiar el rol.");
+  }
+
+  revalidatePath("/admin/usuarios");
+  return ok(null);
+}
+
+/** Activa o desactiva un usuario (con la sesión del admin, para auditar el actor). */
+export async function activarDesactivar(
+  input: unknown,
+): Promise<Resultado<null>> {
+  const actor = await requireRol("admin");
+
+  const parsed = activarUsuarioSchema.safeParse(input);
+  if (!parsed.success) {
+    return fallo("Datos no válidos.");
+  }
+
+  const guard = validarActivacion({
+    actorId: actor.id,
+    objetivoId: parsed.data.usuarioId,
+    activo: parsed.data.activo,
+  });
+  if (!guard.ok) {
+    return guard;
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ activo: parsed.data.activo })
+    .eq("id", parsed.data.usuarioId);
+
+  if (error) {
+    return fallo("No se pudo actualizar el estado del usuario.");
+  }
+
+  revalidatePath("/admin/usuarios");
+  return ok(null);
+}
