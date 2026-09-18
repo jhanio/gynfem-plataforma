@@ -1,0 +1,62 @@
+import { describe, expect, it } from "vitest";
+import {
+  esMismoDiaLima,
+  formatearFecha,
+  formatearFechaHora,
+  formatearHora,
+  obtenerFinDiaLima,
+  obtenerInicioDiaLima,
+  ZONA_HORARIA_LIMA,
+} from "./fechas";
+
+describe("ZONA_HORARIA_LIMA", () => {
+  it("es America/Lima", () => {
+    expect(ZONA_HORARIA_LIMA).toBe("America/Lima");
+  });
+});
+
+describe("formatearFecha", () => {
+  it("formatea un instante UTC como DD/MM/AAAA en hora de Lima", () => {
+    expect(formatearFecha("2026-01-15T05:30:00.000Z")).toBe("15/01/2026");
+  });
+
+  it("retrocede al día anterior cuando la hora UTC aún no llega a Lima", () => {
+    expect(formatearFecha("2026-01-15T04:59:00.000Z")).toBe("14/01/2026");
+  });
+});
+
+describe("formatearHora", () => {
+  it("formatea la hora en formato 24h de Lima", () => {
+    expect(formatearHora("2026-01-15T05:30:00.000Z")).toBe("00:30");
+  });
+});
+
+describe("formatearFechaHora", () => {
+  it("combina fecha y hora separadas por un espacio", () => {
+    expect(formatearFechaHora("2026-01-15T05:30:00.000Z")).toBe("15/01/2026 00:30");
+  });
+});
+
+describe("obtenerInicioDiaLima", () => {
+  it("devuelve el instante UTC del inicio del día en Lima", () => {
+    const inicio = obtenerInicioDiaLima("2026-01-15T15:00:00.000Z");
+    expect(new Date(inicio).toISOString()).toBe("2026-01-15T05:00:00.000Z");
+  });
+});
+
+describe("obtenerFinDiaLima", () => {
+  it("devuelve el instante UTC del fin del día en Lima", () => {
+    const fin = obtenerFinDiaLima("2026-01-15T15:00:00.000Z");
+    expect(new Date(fin).toISOString()).toBe("2026-01-16T04:59:59.999Z");
+  });
+});
+
+describe("esMismoDiaLima", () => {
+  it("es verdadero cuando ambos instantes caen en el mismo día en Lima", () => {
+    expect(esMismoDiaLima("2026-01-15T05:30:00.000Z", "2026-01-15T23:00:00.000Z")).toBe(true);
+  });
+
+  it("es falso cuando el instante UTC cruza la medianoche de Lima", () => {
+    expect(esMismoDiaLima("2026-01-15T04:59:00.000Z", "2026-01-15T05:30:00.000Z")).toBe(false);
+  });
+});
