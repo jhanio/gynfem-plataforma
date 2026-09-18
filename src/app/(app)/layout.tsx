@@ -1,11 +1,22 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { getPerfil } from "@/lib/auth/guards";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const perfil = await getPerfil();
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar
+        rol={perfil.rol}
+        nombreCompleto={perfil.nombreCompleto}
+        email={perfil.email}
+      />
       <SidebarInset>
         <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger />
