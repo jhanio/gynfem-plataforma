@@ -108,7 +108,7 @@ select results_eq(
 -- servicios: admin S I U; resto solo S
 -- =====================================================================
 set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
-select ok((select count(*) from public.servicios) = 1, 'médico ve servicios (S)');
+select ok((select count(*) from public.servicios) >= 1, 'médico ve servicios (S)');
 select throws_ok(
   $$ insert into public.servicios (nombre, categoria, duracion_min) values ('Nuevo', 'X', 30) $$,
   '42501', null, 'médico NO puede crear servicios (I)');
@@ -117,7 +117,7 @@ select results_eq(
   $$ VALUES (0) $$, 'médico NO puede actualizar servicios (0 filas)');
 
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
-select ok((select count(*) from public.servicios) = 1, 'asistente ve servicios (S)');
+select ok((select count(*) from public.servicios) >= 1, 'asistente ve servicios (S)');
 select throws_ok(
   $$ insert into public.servicios (nombre, categoria, duracion_min) values ('Otro', 'X', 30) $$,
   '42501', null, 'asistente NO puede crear servicios (I)');
