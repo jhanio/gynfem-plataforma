@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
@@ -19,7 +20,18 @@ export const metadata: Metadata = {
   description: "Plataforma de seguimiento ginecológico inteligente",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  // Leer headers() fuerza renderizado dinámico en cada request: el nonce
+  // de CSP (src/proxy.ts) cambia por request, así que esta ruta no puede
+  // precalcularse en build. Next.js detecta el nonce en la cabecera
+  // Content-Security-Policy de la respuesta y lo aplica automáticamente
+  // a los scripts que él mismo inyecta.
+  await headers();
+
   return (
     <html
       lang="es"
