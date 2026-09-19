@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { validarActivacion, validarCambioRol } from "./anti-bloqueo";
+import {
+  validarActivacion,
+  validarCambioRol,
+  validarRestablecerMfa,
+} from "./anti-bloqueo";
 
 const ADMIN_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const USUARIO_B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
@@ -59,6 +63,18 @@ describe("validarActivacion (anti-bloqueo)", () => {
       objetivoId: USUARIO_B,
       activo: false,
     });
+    expect(r.ok).toBe(true);
+  });
+});
+
+describe("validarRestablecerMfa (anti-bloqueo)", () => {
+  it("impide que un admin restablezca su propio MFA", () => {
+    const r = validarRestablecerMfa({ actorId: ADMIN_A, objetivoId: ADMIN_A });
+    expect(r.ok).toBe(false);
+  });
+
+  it("permite restablecer el MFA de otro usuario", () => {
+    const r = validarRestablecerMfa({ actorId: ADMIN_A, objetivoId: USUARIO_B });
     expect(r.ok).toBe(true);
   });
 });

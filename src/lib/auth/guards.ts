@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { notFound } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { rutaMfaPendiente } from "./mfa-gate";
+import { requiereMfa } from "./mfa";
 import type { Rol } from "./roles";
 
 export interface PerfilSesion {
@@ -38,6 +40,18 @@ export async function getPerfil(): Promise<PerfilSesion> {
 
   if (!perfil || !perfil.activo) {
     redirect("/cuenta-inactiva");
+  }
+
+  // Defensa en profundidad: el middleware ya exige aal2 para estos roles
+  // antes de servir cualquier ruta del grupo (app), pero las Server
+  // Actions que usan la clave secreta (crear/activar/cambiar rol,
+  // restablecer MFA) pasan por aquí y omiten RLS, así que también deben
+  // volver a exigirlo por su cuenta.
+  if (requiereMfa(perfil.rol)) {
+    const ruta = await rutaMfaPendiente(supabase);
+    if (ruta) {
+      redirect(ruta);
+    }
   }
 
   return {

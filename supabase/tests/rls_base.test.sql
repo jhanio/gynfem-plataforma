@@ -29,8 +29,8 @@ select is((select count(*)::int from public.pacientes), 1, 'asistente ve pacient
 select is((select count(*)::int from public.historias_clinicas), 0, 'asistente NO ve historia clínica');
 select throws_ok($$ delete from public.pacientes $$, '42501', null, 'nadie puede borrar físicamente');
 
--- Médico
-set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+-- Médico (con aal2: la política de historias_clinicas ahora lo exige)
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","aal":"aal2"}';
 select is((select count(*)::int from public.historias_clinicas), 1, 'médico ve historia clínica');
 select is((select count(*)::int from public.audit_log), 0, 'médico NO ve auditoría');
 
@@ -42,8 +42,8 @@ select is((select count(*)::int from public.pacientes), 0, 'soporte NO ve pacien
 set local request.jwt.claims = '{"sub":"44444444-4444-4444-4444-444444444444","role":"authenticated"}';
 select is((select count(*)::int from public.servicios), 0, 'usuario inactivo no ve nada');
 
--- Admin
-set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}';
+-- Admin (con aal2: la política de audit_log ahora lo exige)
+set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated","aal":"aal2"}';
 select is((select count(*)::int from public.historias_clinicas), 0, 'admin NO ve historia clínica');
 select ok((select count(*) from public.audit_log) > 0, 'admin ve auditoría');
 

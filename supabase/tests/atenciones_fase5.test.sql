@@ -45,17 +45,17 @@ values ('d0000000-0000-0000-0000-000000000002',
 -- registrar_acceso_historia: solo medico/obstetra; genera READ
 -- =====================================================================
 set local role authenticated;
-set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","aal":"aal2"}';
 select lives_ok(
   $$ select public.registrar_acceso_historia('a0000000-0000-0000-0000-000000000001') $$,
   'médico registra acceso a la historia (READ)');
 
-set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated","aal":"aal2"}';
 select throws_ok(
   $$ select public.registrar_acceso_historia('a0000000-0000-0000-0000-000000000001') $$,
   '42501', null, 'asistente NO puede registrar acceso a la historia');
 
-set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated","aal":"aal2"}';
 select throws_ok(
   $$ select public.registrar_acceso_historia('a0000000-0000-0000-0000-000000000001') $$,
   '42501', null, 'admin NO puede registrar acceso a la historia');
@@ -70,7 +70,7 @@ select is(
 -- =====================================================================
 -- Firma: una obstetra NO puede firmar el borrador de un médico (0 filas)
 -- =====================================================================
-set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","aal":"aal2"}';
 select results_eq(
   $$ WITH u AS (UPDATE public.atenciones SET estado = 'firmada'
                 WHERE id = 'd0000000-0000-0000-0000-000000000001' RETURNING 1)
@@ -86,7 +86,7 @@ select is(
 -- =====================================================================
 -- Adenda: inmutable una vez creada (sin política UPDATE -> 0 filas)
 -- =====================================================================
-set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","aal":"aal2"}';
 insert into public.adendas (id, atencion_id, contenido)
 values ('f0000000-0000-0000-0000-000000000001',
         'd0000000-0000-0000-0000-000000000002', 'Corrección ficticia');
