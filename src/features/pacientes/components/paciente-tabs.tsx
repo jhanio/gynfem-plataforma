@@ -8,13 +8,14 @@ import type { Rol } from "@/lib/auth/roles";
 interface PacienteTabsProps {
   rol: Rol;
   datos: ReactNode;
+  citas: ReactNode;
 }
 
 function PlaceholderTab({ texto }: { texto: string }) {
   return <p className="py-8 text-center text-muted-foreground">{texto}</p>;
 }
 
-export function PacienteTabs({ rol, datos }: PacienteTabsProps) {
+export function PacienteTabs({ rol, datos, citas }: PacienteTabsProps) {
   const puedeVerHistoria = rol === "medico" || rol === "obstetra";
 
   return (
@@ -30,9 +31,7 @@ export function PacienteTabs({ rol, datos }: PacienteTabsProps) {
 
       <TabsContent value="datos">{datos}</TabsContent>
 
-      <TabsContent value="citas">
-        <PlaceholderTab texto="La agenda de citas de esta paciente se implementará en la Fase 4." />
-      </TabsContent>
+      <TabsContent value="citas">{citas}</TabsContent>
 
       {puedeVerHistoria ? (
         <TabsContent value="historia">

@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/card";
 import { requireRol } from "@/lib/auth/guards";
 import { obtenerPaciente } from "@/features/pacientes/queries";
+import { listarCitasPaciente } from "@/features/agenda/queries";
 import { PacienteFormulario } from "@/features/pacientes/components/paciente-formulario";
 import { PacienteTabs } from "@/features/pacientes/components/paciente-tabs";
 import { EliminarPacienteDialog } from "@/features/pacientes/components/eliminar-paciente-dialog";
+import { CitasPaciente } from "@/features/pacientes/components/citas-paciente";
 import { TIPO_DOCUMENTO_LABELS } from "@/features/pacientes/labels";
 
 interface FichaPacientePageProps {
@@ -29,6 +31,8 @@ export default async function FichaPacientePage({
   if (!paciente) {
     notFound();
   }
+
+  const citas = await listarCitasPaciente(paciente.id);
 
   return (
     <Card>
@@ -55,6 +59,7 @@ export default async function FichaPacientePage({
         <PacienteTabs
           rol={rol}
           datos={<PacienteFormulario paciente={paciente} />}
+          citas={<CitasPaciente citas={citas} />}
         />
       </CardContent>
     </Card>

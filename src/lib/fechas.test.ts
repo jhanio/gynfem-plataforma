@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  combinarFechaHoraLima,
   esMismoDiaLima,
   formatearFecha,
   formatearFechaHora,
   formatearHora,
+  obtenerFechaISOLima,
   obtenerFinDiaLima,
   obtenerInicioDiaLima,
   ZONA_HORARIA_LIMA,
@@ -58,5 +60,30 @@ describe("esMismoDiaLima", () => {
 
   it("es falso cuando el instante UTC cruza la medianoche de Lima", () => {
     expect(esMismoDiaLima("2026-01-15T04:59:00.000Z", "2026-01-15T05:30:00.000Z")).toBe(false);
+  });
+});
+
+describe("obtenerFechaISOLima", () => {
+  it("devuelve AAAA-MM-DD del día en Lima", () => {
+    expect(obtenerFechaISOLima("2026-01-15T05:30:00.000Z")).toBe("2026-01-15");
+  });
+
+  it("retrocede al día anterior cuando la hora UTC aún no llega a Lima", () => {
+    expect(obtenerFechaISOLima("2026-01-15T04:59:00.000Z")).toBe("2026-01-14");
+  });
+});
+
+describe("combinarFechaHoraLima", () => {
+  it("interpreta fecha y hora como hora de Lima y devuelve el instante UTC", () => {
+    const instante = combinarFechaHoraLima("2026-03-10", "21:00");
+    expect(instante.getTime()).toBe(new Date("2026-03-11T02:00:00.000Z").getTime());
+  });
+
+  it("una cita a las 21:00 de Lima NO aparece en el día siguiente", () => {
+    const instante = combinarFechaHoraLima("2026-03-10", "21:00");
+    // Aunque el instante UTC ya cae en el 11/03, en Lima sigue siendo 10/03.
+    expect(formatearFecha(instante)).toBe("10/03/2026");
+    expect(esMismoDiaLima(instante, "2026-03-10T12:00:00.000Z")).toBe(true);
+    expect(esMismoDiaLima(instante, "2026-03-11T12:00:00.000Z")).toBe(false);
   });
 });
