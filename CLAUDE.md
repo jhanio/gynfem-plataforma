@@ -71,6 +71,7 @@ npx supabase gen types typescript --linked > src/types/database.types.ts
 - TDD para lógica de dominio (validaciones, reglas de agenda, cálculos, construcción de mensajes) y para RLS.
 - Commits convencionales en español: `feat(agenda): crear cita con validación de cruce`.
 - **Nunca** hagas merge a `main`, `push --force` ni cambies la configuración del repositorio. Abre PR y detente.
+- **Antes de cualquier commit, verifica con `git branch --show-current` que no estás en `main`.** Si estás en `main`, crea una rama nueva antes de continuar. Nunca hagas push a `main`.
 - Antes de declarar terminado: lint + typecheck + test + build en verde y checklist de la fase cumplido.
 - Si una tarea requiere credenciales o acciones en un dashboard (Supabase, Vercel, GitHub): **detente y pídelo** con instrucciones exactas.
 - No agregues dependencias fuera de las listadas sin justificarlo en el plan.
