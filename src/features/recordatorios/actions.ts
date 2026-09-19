@@ -62,12 +62,9 @@ export async function generarRecordatoriosAhora(): Promise<Resultado<{ creados: 
   const supabase = await createClient();
   const sede = process.env.NEXT_PUBLIC_WHATSAPP_SEDE;
 
-  // TODO(fase-6): quitar el "as never" cuando se regeneren los tipos tras
-  // aplicar la migración 20260919060259_agregar_sede_recordatorios (el tipo
-  // actual de generar_recordatorios_citas todavía no conoce p_sede).
   const { data, error } = await supabase.rpc(
     "generar_recordatorios_citas",
-    (sede ? { p_sede: sede } : {}) as never,
+    sede ? { p_sede: sede } : {},
   );
 
   if (error) {
