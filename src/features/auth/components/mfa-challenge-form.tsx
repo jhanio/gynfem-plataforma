@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createClient } from "@/lib/supabase/client";
+import { mensajeErrorMfa } from "@/lib/auth/mfa";
 
 const LARGO_CODIGO = 6;
 
@@ -31,7 +32,7 @@ export function MfaChallengeForm() {
 
       const factorVerificado = data?.totp.find((f) => f.status === "verified");
       if (error || !factorVerificado) {
-        setError("No se encontró un factor de verificación inscrito.");
+        setError(error ? mensajeErrorMfa(error.code) : "No se encontró un factor de verificación inscrito.");
         setCargando(false);
         return;
       }
@@ -62,7 +63,7 @@ export function MfaChallengeForm() {
 
     if (error) {
       setVerificando(false);
-      setError("Código incorrecto. Intenta de nuevo.");
+      setError(mensajeErrorMfa(error.code));
       return;
     }
 

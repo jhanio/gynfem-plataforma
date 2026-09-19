@@ -159,6 +159,8 @@ export default async function globalSetup() {
     await paginaMedico.getByRole("button", { name: "Iniciar sesión" }).click();
 
     await paginaMedico.waitForURL("**/mfa/activar");
+    await paginaMedico.getByRole("button", { name: "Generar código QR" }).click();
+    await paginaMedico.locator("#secreto-totp").waitFor();
     const secreto = await paginaMedico.locator("#secreto-totp").inputValue();
     const codigo = authenticator.generate(secreto);
     await paginaMedico.getByLabel("Código de 6 dígitos").fill(codigo);

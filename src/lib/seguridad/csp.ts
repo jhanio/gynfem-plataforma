@@ -23,6 +23,12 @@ export function construirCsp(nonce: string): string {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const conectaCon = ["'self'", supabaseUrl].filter(Boolean).join(" ");
 
+  // El Preview de Vercel inyecta su barra de feedback (vercel.live) en
+  // un iframe. Solo la permitimos ahí: en producción (VERCEL_ENV no
+  // definido o "production") no tiene por qué cargarse ese script.
+  const esPreview = process.env.VERCEL_ENV === "preview";
+  const frameSrc = esPreview ? "frame-src https://vercel.live" : "frame-src 'none'";
+
   return [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
@@ -33,6 +39,7 @@ export function construirCsp(nonce: string): string {
     `img-src 'self' data:`,
     `font-src 'self'`,
     `connect-src ${conectaCon}`,
+    frameSrc,
     `frame-ancestors 'none'`,
     `object-src 'none'`,
     `base-uri 'self'`,
