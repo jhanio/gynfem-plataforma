@@ -6,11 +6,16 @@ import { CitaCard } from "./cita-card";
 interface AgendaVistaSemanaProps {
   inicioSemanaISO: string;
   citas: CitaAgenda[];
+  puedeAtender?: boolean;
 }
 
 const NOMBRES_DIA = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
-export function AgendaVistaSemana({ inicioSemanaISO, citas }: AgendaVistaSemanaProps) {
+export function AgendaVistaSemana({
+  inicioSemanaISO,
+  citas,
+  puedeAtender = false,
+}: AgendaVistaSemanaProps) {
   const dias = Array.from({ length: 7 }, (_, i) => desplazarFechaISO(inicioSemanaISO, i));
 
   return (
@@ -27,7 +32,7 @@ export function AgendaVistaSemana({ inicioSemanaISO, citas }: AgendaVistaSemanaP
             ) : (
               <ul className="flex flex-col gap-2">
                 {citasDelDia.map((cita) => (
-                  <CitaCard key={cita.id} cita={cita} />
+                  <CitaCard key={cita.id} cita={cita} puedeAtender={puedeAtender} />
                 ))}
               </ul>
             )}

@@ -11,11 +11,16 @@ import {
 import { requireRol } from "@/lib/auth/guards";
 import { obtenerPaciente } from "@/features/pacientes/queries";
 import { listarCitasPaciente } from "@/features/agenda/queries";
+import { cargarHistoriaClinica } from "@/features/historias/queries";
 import { PacienteFormulario } from "@/features/pacientes/components/paciente-formulario";
 import { PacienteTabs } from "@/features/pacientes/components/paciente-tabs";
 import { EliminarPacienteDialog } from "@/features/pacientes/components/eliminar-paciente-dialog";
 import { CitasPaciente } from "@/features/pacientes/components/citas-paciente";
+import { HistoriaClinica } from "@/features/historias/components/historia-clinica";
 import { TIPO_DOCUMENTO_LABELS } from "@/features/pacientes/labels";
+
+// La ficha registra acceso clínico para roles médicos: siempre dinámica.
+export const dynamic = "force-dynamic";
 
 interface FichaPacientePageProps {
   params: Promise<{ id: string }>;
@@ -33,6 +38,13 @@ export default async function FichaPacientePage({
   }
 
   const citas = await listarCitasPaciente(paciente.id);
+  const puedeVerHistoria = rol === "medico" || rol === "obstetra";
+  const historia = puedeVerHistoria ? (
+    <HistoriaClinica
+      pacienteId={paciente.id}
+      carga={await cargarHistoriaClinica(paciente.id)}
+    />
+  ) : undefined;
 
   return (
     <Card>
@@ -60,6 +72,7 @@ export default async function FichaPacientePage({
           rol={rol}
           datos={<PacienteFormulario paciente={paciente} />}
           citas={<CitasPaciente citas={citas} />}
+          historia={historia}
         />
       </CardContent>
     </Card>

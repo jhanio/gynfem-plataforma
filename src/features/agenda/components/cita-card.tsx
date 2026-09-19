@@ -18,6 +18,7 @@ import { confirmarCita } from "@/features/agenda/actions";
 import { puedeAplicarAccion } from "@/features/agenda/dominio";
 import { ESTADO_CITA_LABELS, ESTADO_CITA_VARIANTE } from "@/features/agenda/labels";
 import type { CitaAgenda } from "@/features/agenda/queries";
+import { IniciarAtencionDialog } from "@/features/atenciones/components/iniciar-atencion-dialog";
 import { CancelarCitaDialog } from "./cancelar-cita-dialog";
 import { NoAsistioDialog } from "./no-asistio-dialog";
 import { ReprogramarCitaDialog } from "./reprogramar-cita-dialog";
@@ -25,11 +26,16 @@ import { ReprogramarCitaDialog } from "./reprogramar-cita-dialog";
 interface CitaCardProps {
   cita: CitaAgenda;
   mostrarProfesional?: boolean;
+  puedeAtender?: boolean;
 }
 
-type DialogoAbierto = "cancelar" | "no_asistio" | "reprogramar" | null;
+type DialogoAbierto = "cancelar" | "no_asistio" | "reprogramar" | "iniciar" | null;
 
-export function CitaCard({ cita, mostrarProfesional = false }: CitaCardProps) {
+export function CitaCard({
+  cita,
+  mostrarProfesional = false,
+  puedeAtender = false,
+}: CitaCardProps) {
   const router = useRouter();
   const [dialogo, setDialogo] = useState<DialogoAbierto>(null);
   const [pendiente, startTransition] = useTransition();
@@ -50,7 +56,14 @@ export function CitaCard({ cita, mostrarProfesional = false }: CitaCardProps) {
   const puedeCancelar = puedeAplicarAccion(cita.estado, "cancelar");
   const puedeReprogramar = puedeAplicarAccion(cita.estado, "reprogramar");
   const puedeMarcarNoAsistio = puedeAplicarAccion(cita.estado, "no_asistio");
-  const hayAcciones = puedeConfirmar || puedeCancelar || puedeReprogramar || puedeMarcarNoAsistio;
+  const puedeIniciarAtencion =
+    puedeAtender && (cita.estado === "programada" || cita.estado === "confirmada");
+  const hayAcciones =
+    puedeConfirmar ||
+    puedeCancelar ||
+    puedeReprogramar ||
+    puedeMarcarNoAsistio ||
+    puedeIniciarAtencion;
 
   return (
     <li className="flex items-start justify-between gap-3 rounded-md border p-3">
@@ -89,6 +102,11 @@ export function CitaCard({ cita, mostrarProfesional = false }: CitaCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              {puedeIniciarAtencion ? (
+                <DropdownMenuItem onSelect={() => setDialogo("iniciar")}>
+                  Iniciar atención
+                </DropdownMenuItem>
+              ) : null}
               {puedeReprogramar ? (
                 <DropdownMenuItem onSelect={() => setDialogo("reprogramar")}>
                   Reprogramar
@@ -126,6 +144,13 @@ export function CitaCard({ cita, mostrarProfesional = false }: CitaCardProps) {
         abierto={dialogo === "reprogramar"}
         onOpenChange={(v) => setDialogo(v ? "reprogramar" : null)}
       />
+      {puedeAtender ? (
+        <IniciarAtencionDialog
+          citaId={cita.id}
+          abierto={dialogo === "iniciar"}
+          onOpenChange={(v) => setDialogo(v ? "iniciar" : null)}
+        />
+      ) : null}
     </li>
   );
 }

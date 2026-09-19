@@ -36,7 +36,8 @@ interface AgendaPageProps {
 }
 
 export default async function AgendaPage({ searchParams }: AgendaPageProps) {
-  await requireRol("admin", "medico", "obstetra", "asistente");
+  const { rol } = await requireRol("admin", "medico", "obstetra", "asistente");
+  const puedeAtender = rol === "medico" || rol === "obstetra";
 
   const params = await searchParams;
   const vista = parsearVista(params.vista);
@@ -54,7 +55,9 @@ export default async function AgendaPage({ searchParams }: AgendaPageProps) {
 
   if (vista === "hoy") {
     const citas = await listarCitasHoy();
-    contenido = <AgendaVistaDia citas={citas} mostrarProfesional />;
+    contenido = (
+      <AgendaVistaDia citas={citas} mostrarProfesional puedeAtender={puedeAtender} />
+    );
   } else if (vista === "semana") {
     const lunes = inicioSemanaISO(fecha);
     if (!profesionalIdSemana) {
@@ -67,14 +70,24 @@ export default async function AgendaPage({ searchParams }: AgendaPageProps) {
       const desde = combinarFechaHoraLima(lunes, "00:00");
       const hasta = obtenerFinDiaLima(combinarFechaHoraLima(desplazarFechaISO(lunes, 6), "00:00"));
       const citas = await listarCitasRango(desde, hasta, profesionalIdSemana);
-      contenido = <AgendaVistaSemana inicioSemanaISO={lunes} citas={citas} />;
+      contenido = (
+        <AgendaVistaSemana
+          inicioSemanaISO={lunes}
+          citas={citas}
+          puedeAtender={puedeAtender}
+        />
+      );
     }
   } else {
     const desde = combinarFechaHoraLima(fecha, "00:00");
     const hasta = obtenerFinDiaLima(desde);
     const citas = await listarCitasRango(desde, hasta, params.profesionalId);
     contenido = (
-      <AgendaVistaDia citas={citas} mostrarProfesional={!params.profesionalId} />
+      <AgendaVistaDia
+        citas={citas}
+        mostrarProfesional={!params.profesionalId}
+        puedeAtender={puedeAtender}
+      />
     );
   }
 
