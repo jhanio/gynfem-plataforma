@@ -2,14 +2,17 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
 import type { Database } from "@/types/database.types";
+import { requiereMfa } from "@/lib/auth/mfa";
+import { rutaMfaPendiente } from "@/lib/auth/mfa-gate";
 
 /** Rutas públicas que no requieren sesión. */
 const RUTAS_PUBLICAS = ["/login", "/cuenta-inactiva"];
 
-function esRutaPublica(pathname: string): boolean {
-  return RUTAS_PUBLICAS.some(
-    (ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`),
-  );
+/** Rutas de MFA: requieren sesión (aal1 basta), pero no aal2 todavía. */
+const RUTAS_MFA = ["/mfa/activar", "/mfa/verificar"];
+
+function coincideConAlguna(pathname: string, rutas: readonly string[]): boolean {
+  return rutas.some((ruta) => pathname === ruta || pathname.startsWith(`${ruta}/`));
 }
 
 /**
@@ -20,8 +23,17 @@ function esRutaPublica(pathname: string): boolean {
  */
 export async function actualizarSesion(
   request: NextRequest,
+  nonce: string,
 ): Promise<NextResponse> {
-  let supabaseResponse = NextResponse.next({ request });
+  // Reenviamos x-nonce en la request para que Server Components lean el
+  // mismo valor que la cabecera Content-Security-Policy de la respuesta
+  // (ver src/lib/seguridad/csp.ts y src/proxy.ts).
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+
+  let supabaseResponse = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
 
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -35,7 +47,9 @@ export async function actualizarSesion(
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
-          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse = NextResponse.next({
+            request: { headers: requestHeaders },
+          });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
@@ -50,11 +64,44 @@ export async function actualizarSesion(
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+  const esRutaPublica = coincideConAlguna(pathname, RUTAS_PUBLICAS);
 
-  if (!user && !esRutaPublica(pathname)) {
+  if (!user) {
+    if (!esRutaPublica) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
+
+  if (esRutaPublica || coincideConAlguna(pathname, RUTAS_MFA)) {
+    return supabaseResponse;
+  }
+
+  // El rol es la fuente de verdad en public.profiles (no en
+  // app_metadata): app_metadata puede llegar vacío para cuentas creadas
+  // antes de que existiera ese flujo, y los cambios de rol posteriores
+  // solo se aplican en profiles.
+  const { data: perfil } = await supabase
+    .from("profiles")
+    .select("rol, activo")
+    .eq("id", user.id)
+    .single();
+
+  if (!perfil || !perfil.activo) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/cuenta-inactiva";
     return NextResponse.redirect(url);
+  }
+
+  if (requiereMfa(perfil.rol)) {
+    const ruta = await rutaMfaPendiente(supabase);
+    if (ruta) {
+      const url = request.nextUrl.clone();
+      url.pathname = ruta;
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;

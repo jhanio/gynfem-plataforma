@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   CalendarDays,
+  CircleUser,
   ClipboardList,
   Home,
   LayoutDashboard,
@@ -124,6 +125,18 @@ export function AppSidebar({ rol, nombreCompleto, email }: AppSidebarProps) {
           </p>
         </div>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname.startsWith("/cuenta")}
+              tooltip="Mi cuenta"
+            >
+              <Link href="/cuenta">
+                <CircleUser />
+                <span>Mi cuenta</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <form action={cerrarSesion}>
               <SidebarMenuButton
