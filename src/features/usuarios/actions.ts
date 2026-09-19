@@ -37,7 +37,7 @@ export async function crearUsuario(
   const passwordTemporal = generarPasswordTemporal();
   const admin = createAdminClient();
 
-  const { error } = await admin.auth.admin.createUser({
+  const { data, error } = await admin.auth.admin.createUser({
     email: parsed.data.email,
     password: passwordTemporal,
     email_confirm: true,
@@ -54,6 +54,17 @@ export async function crearUsuario(
       return fallo("Ya existe un usuario con ese correo.");
     }
     return fallo("No se pudo crear el usuario.");
+  }
+
+  // Defensa en profundidad: GoTrue aplica app_metadata (rol) en un UPDATE
+  // posterior al INSERT, así que el trigger de creación pudo no verlo. La
+  // migración sync_rol_perfil lo corrige en BD; esto lo garantiza también
+  // aquí de forma idempotente (por si la migración no está aplicada aún).
+  if (data.user) {
+    await admin
+      .from("profiles")
+      .update({ rol: parsed.data.rol, activo: true })
+      .eq("id", data.user.id);
   }
 
   revalidatePath("/admin/usuarios");

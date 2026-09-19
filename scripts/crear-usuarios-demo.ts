@@ -71,7 +71,7 @@ async function main() {
 
   for (const u of USUARIOS_DEMO) {
     const password = passwordTemporal();
-    const { error } = await supabase.auth.admin.createUser({
+    const { data, error } = await supabase.auth.admin.createUser({
       email: u.email,
       password,
       email_confirm: true,
@@ -83,6 +83,17 @@ async function main() {
       console.warn(`- ${u.email} (${u.rol}): omitido — ${error.message}`);
       continue;
     }
+
+    // GoTrue aplica app_metadata (rol) en un UPDATE posterior al INSERT; la
+    // migración sync_rol_perfil lo corrige en BD. Esto lo garantiza también de
+    // forma idempotente por si la migración no está aplicada todavía.
+    if (data.user) {
+      await supabase
+        .from("profiles")
+        .update({ rol: u.rol, activo: true })
+        .eq("id", data.user.id);
+    }
+
     credenciales.push({ email: u.email, rol: u.rol, password });
   }
 
