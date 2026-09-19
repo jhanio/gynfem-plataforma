@@ -128,6 +128,10 @@ select results_eq(
 select ok(
   (select mensaje from public.recordatorios where paciente_id = '7a000000-0000-0000-0000-000000000007') like '%GynFem - Sede Norte%',
   'la llamada manual usa la sede recibida por parámetro, no el valor por defecto');
+select ok(
+  (select mensaje from public.recordatorios where paciente_id = '7a000000-0000-0000-0000-000000000007')
+    not like '%Ecografía Fase6 No Debe Aparecer%',
+  'la llamada manual tampoco incluye el nombre del servicio en el mensaje');
 
 -- =====================================================================
 -- anon: sin privilegio EXECUTE (revocado explícitamente en la migración)
