@@ -99,7 +99,7 @@ select results_eq(
 set local request.jwt.claims = '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}';
 select ok((select count(*) from public.profiles) = 6, 'soporte ve todos los perfiles (S)');
 
-set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated","aal":"aal2"}';
 select results_eq(
   $$ WITH u AS (UPDATE public.profiles SET nombre_completo = 'Admin edita' WHERE id = '22222222-2222-2222-2222-222222222222' RETURNING 1) SELECT count(*)::int FROM u $$,
   $$ VALUES (1) $$, 'admin SÍ puede actualizar perfiles (U)');
@@ -160,9 +160,9 @@ set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","r
 select ok((select count(*) from public.pacientes where deleted_at is not null) = 1, 'admin SÍ ve pacientes borradas');
 
 -- =====================================================================
--- historias_clinicas: solo medico/obstetra S I U
+-- historias_clinicas: solo medico/obstetra S I U, y con aal2
 -- =====================================================================
-set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","aal":"aal2"}';
 select ok((select count(*) from public.historias_clinicas) = 1, 'médico ve historia clínica (S)');
 select lives_ok(
   $$ insert into public.historias_clinicas (paciente_id, alergias)
@@ -172,7 +172,7 @@ select results_eq(
   $$ WITH u AS (UPDATE public.historias_clinicas SET alergias = 'Polen' WHERE paciente_id = 'a0000000-0000-0000-0000-000000000001' RETURNING 1) SELECT count(*)::int FROM u $$,
   $$ VALUES (1) $$, 'médico SÍ puede actualizar historia clínica (U)');
 
-set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"66666666-6666-6666-6666-666666666666","role":"authenticated","aal":"aal2"}';
 select ok((select count(*) from public.historias_clinicas) = 2, 'obstetra ve historias clínicas (S)');
 
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
@@ -199,8 +199,9 @@ select ok((select count(*) from public.citas) = 0, 'soporte NO ve citas (S)');
 
 -- =====================================================================
 -- atenciones: solo medico/obstetra S; insert propio; update propio borrador; firmada inmutable
+-- (todo exige aal2)
 -- =====================================================================
-set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","aal":"aal2"}';
 select ok((select count(*) from public.atenciones) = 2, 'médico ve atenciones (S)');
 select results_eq(
   $$ WITH u AS (UPDATE public.atenciones SET anamnesis = 'edit' WHERE id = 'd0000000-0000-0000-0000-000000000001' RETURNING 1) SELECT count(*)::int FROM u $$,
@@ -216,9 +217,9 @@ set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","r
 select ok((select count(*) from public.atenciones) = 0, 'admin NO ve atenciones (S)');
 
 -- =====================================================================
--- adendas: medico/obstetra S; insert solo sobre atención firmada
+-- adendas: medico/obstetra S; insert solo sobre atención firmada (aal2)
 -- =====================================================================
-set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","aal":"aal2"}';
 select lives_ok(
   $$ insert into public.adendas (atencion_id, contenido) values ('d0000000-0000-0000-0000-000000000002', 'Corrección ficticia') $$,
   'médico SÍ puede adjuntar adenda a atención firmada (I)');
@@ -278,9 +279,9 @@ set local request.jwt.claims = '{"sub":"33333333-3333-3333-3333-333333333333","r
 select ok((select count(*) from public.recordatorios) = 0, 'soporte NO ve recordatorios (S)');
 
 -- =====================================================================
--- audit_log: solo admin S
+-- audit_log: solo admin S, y con aal2
 -- =====================================================================
-set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated","aal":"aal2"}';
 select ok((select count(*) from public.audit_log) > 0, 'admin ve auditoría (S)');
 
 set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
@@ -311,9 +312,9 @@ select throws_ok(
   '42501', null, 'nadie puede borrar físicamente (42501)');
 
 -- =====================================================================
--- Flujo clínico: firmar borrador -> cita 'atendida' (trigger)
+-- Flujo clínico: firmar borrador -> cita 'atendida' (trigger) (aal2)
 -- =====================================================================
-set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
+set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated","aal":"aal2"}';
 select lives_ok(
   $$ update public.atenciones set estado = 'firmada' where id = 'd0000000-0000-0000-0000-000000000001' $$,
   'médico firma su atención en borrador');
