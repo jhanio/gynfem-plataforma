@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -667,6 +667,10 @@ export type Database = {
       registrar_acceso_historia: {
         Args: { p_paciente_id: string }
         Returns: undefined
+      }
+      reprogramar_cita: {
+        Args: { p_cita_id: string; p_motivo: string; p_nuevo_inicio: string }
+        Returns: string
       }
       tiene_rol: { Args: { roles: string[] }; Returns: boolean }
     }

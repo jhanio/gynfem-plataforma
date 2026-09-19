@@ -51,3 +51,19 @@ export function obtenerFinDiaLima(fecha: Date | string): Date {
 export function esMismoDiaLima(a: Date | string, b: Date | string): boolean {
   return formatearFecha(a) === formatearFecha(b);
 }
+
+/** Fecha del día en Lima, en formato AAAA-MM-DD (para inputs y filtros de rango). */
+export function obtenerFechaISOLima(fecha: Date | string): string {
+  return format(aFechaLima(fecha), "yyyy-MM-dd");
+}
+
+/**
+ * Interpreta una fecha ("AAAA-MM-DD") y hora ("HH:mm") elegidas en un
+ * formulario como hora de Lima y devuelve el instante UTC correspondiente
+ * (para guardar en columnas timestamptz).
+ */
+export function combinarFechaHoraLima(fechaISO: string, horaHHmm: string): Date {
+  const [anio, mes, dia] = fechaISO.split("-").map(Number);
+  const [hora, minuto] = horaHHmm.split(":").map(Number);
+  return new TZDate(anio, mes - 1, dia, hora, minuto, 0, 0, ZONA_HORARIA_LIMA);
+}
