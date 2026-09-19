@@ -4,6 +4,7 @@ import {
   esMismoDiaLima,
   formatearFecha,
   formatearFechaHora,
+  formatearFechaISO,
   formatearHora,
   obtenerFechaISOLima,
   obtenerFinDiaLima,
@@ -70,6 +71,18 @@ describe("obtenerFechaISOLima", () => {
 
   it("retrocede al día anterior cuando la hora UTC aún no llega a Lima", () => {
     expect(obtenerFechaISOLima("2026-01-15T04:59:00.000Z")).toBe("2026-01-14");
+  });
+});
+
+describe("formatearFechaISO", () => {
+  it("formatea una fecha calendario (sin hora) como DD/MM/AAAA sin pasar por UTC", () => {
+    expect(formatearFechaISO("2026-01-15")).toBe("15/01/2026");
+  });
+
+  it("no retrocede al día anterior (a diferencia de formatearFecha con columnas date)", () => {
+    // "2026-01-15" interpretado como instante UTC y convertido a Lima da 14/01;
+    // una fecha calendario (columna `date`, sin hora) debe seguir siendo 15/01.
+    expect(formatearFechaISO("2026-01-15")).not.toBe(formatearFecha("2026-01-15"));
   });
 });
 

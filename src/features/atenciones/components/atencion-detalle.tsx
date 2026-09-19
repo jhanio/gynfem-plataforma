@@ -1,12 +1,15 @@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatearFechaHora } from "@/lib/fechas";
+import { CrearSeguimientoDialog } from "@/features/seguimientos/components/crear-seguimiento-dialog";
+import type { ResponsableSeguimiento } from "@/features/seguimientos/queries";
 import { ESTADO_ATENCION_LABELS, ESTADO_ATENCION_VARIANTE } from "../labels";
 import type { AtencionDetalle as Atencion } from "../queries";
 import { AgregarAdendaDialog } from "./agregar-adenda-dialog";
 
 interface AtencionDetalleProps {
   atencion: Atencion;
+  responsables: ResponsableSeguimiento[];
 }
 
 function Campo({ etiqueta, valor }: { etiqueta: string; valor: string | null }) {
@@ -19,24 +22,33 @@ function Campo({ etiqueta, valor }: { etiqueta: string; valor: string | null }) 
   );
 }
 
-export function AtencionDetalle({ atencion }: AtencionDetalleProps) {
+export function AtencionDetalle({ atencion, responsables }: AtencionDetalleProps) {
   const esFirmada = atencion.estado === "firmada";
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge variant={ESTADO_ATENCION_VARIANTE[atencion.estado]}>
-          {ESTADO_ATENCION_LABELS[atencion.estado]}
-        </Badge>
-        {esFirmada && atencion.firmadaAt ? (
-          <span className="text-sm text-muted-foreground">
-            Firmada el {formatearFechaHora(atencion.firmadaAt)}
-          </span>
-        ) : (
-          <span className="text-sm text-muted-foreground">
-            Borrador de otro profesional (solo lectura)
-          </span>
-        )}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant={ESTADO_ATENCION_VARIANTE[atencion.estado]}>
+            {ESTADO_ATENCION_LABELS[atencion.estado]}
+          </Badge>
+          {esFirmada && atencion.firmadaAt ? (
+            <span className="text-sm text-muted-foreground">
+              Firmada el {formatearFechaHora(atencion.firmadaAt)}
+            </span>
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              Borrador de otro profesional (solo lectura)
+            </span>
+          )}
+        </div>
+        {esFirmada ? (
+          <CrearSeguimientoDialog
+            pacienteId={atencion.pacienteId}
+            atencionId={atencion.id}
+            responsables={responsables}
+          />
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-4">

@@ -58,6 +58,17 @@ export function obtenerFechaISOLima(fecha: Date | string): string {
 }
 
 /**
+ * Formatea una fecha calendario ("AAAA-MM-DD", sin hora) como DD/MM/AAAA.
+ * A diferencia de formatearFecha, no interpreta el valor como instante UTC ni
+ * lo convierte a Lima: úsala para columnas `date` (p. ej. fecha_objetivo de
+ * seguimientos), donde ese paso de por medio causaría un día de diferencia.
+ */
+export function formatearFechaISO(fechaISO: string): string {
+  const [anio, mes, dia] = fechaISO.split("-");
+  return `${dia}/${mes}/${anio}`;
+}
+
+/**
  * Interpreta una fecha ("AAAA-MM-DD") y hora ("HH:mm") elegidas en un
  * formulario como hora de Lima y devuelve el instante UTC correspondiente
  * (para guardar en columnas timestamptz).
