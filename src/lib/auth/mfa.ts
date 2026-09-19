@@ -53,6 +53,19 @@ export function nombreFactorMfa(fecha: Date = new Date()): string {
   return `GynFem ${fecha.toISOString()}`;
 }
 
+/**
+ * `totp.qr_code` de `enroll()` es el SVG en crudo (según el propio
+ * comentario del SDK: "convert it to a URL by prepending
+ * `data:image/svg+xml;utf-8,` to the value"), no una data URL ya
+ * armada. Esta función arma el `src` para un `<img>` — nunca uses
+ * `dangerouslySetInnerHTML` con este valor: como `<img>` con `src`
+ * `data:`, el navegador lo trata como una imagen (sin ejecutar nada
+ * embebido), no como HTML inyectado en el DOM.
+ */
+export function dataUriQrTotp(qrCode: string): string {
+  return qrCode.startsWith("data:") ? qrCode : `data:image/svg+xml;utf-8,${qrCode}`;
+}
+
 const MENSAJES_ERROR_MFA: Record<string, string> = {
   mfa_factor_name_conflict:
     "Había una inscripción pendiente sin terminar; se limpió automáticamente. Vuelve a intentarlo.",

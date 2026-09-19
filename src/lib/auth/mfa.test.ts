@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Rol } from "./roles";
 import {
+  dataUriQrTotp,
   idsFactoresTotpSinVerificar,
   mensajeErrorMfa,
   nombreFactorMfa,
@@ -144,5 +145,21 @@ describe("mensajeErrorMfa", () => {
     ]) {
       expect(mensaje).not.toMatch(/@/);
     }
+  });
+});
+
+describe("dataUriQrTotp", () => {
+  it("antepone el prefijo data:image/svg+xml a un SVG en crudo", () => {
+    const svg = "<svg xmlns='http://www.w3.org/2000/svg'></svg>";
+    expect(dataUriQrTotp(svg)).toBe(`data:image/svg+xml;utf-8,${svg}`);
+  });
+
+  it("no duplica el prefijo si el valor ya es una data URL", () => {
+    const yaEsDataUrl = "data:image/svg+xml;utf-8,<svg></svg>";
+    expect(dataUriQrTotp(yaEsDataUrl)).toBe(yaEsDataUrl);
+  });
+
+  it("el resultado siempre empieza con data:image/svg+xml", () => {
+    expect(dataUriQrTotp("<svg></svg>")).toMatch(/^data:image\/svg\+xml/);
   });
 });

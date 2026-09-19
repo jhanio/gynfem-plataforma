@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { createClient } from "@/lib/supabase/client";
 import {
+  dataUriQrTotp,
   idsFactoresTotpSinVerificar,
   mensajeErrorMfa,
   nombreFactorMfa,
@@ -20,6 +21,7 @@ export function MfaEnrollForm() {
   const router = useRouter();
   const [factorId, setFactorId] = useState<string | null>(null);
   const [secreto, setSecreto] = useState<string | null>(null);
+  const [qrCode, setQrCode] = useState<string | null>(null);
   const [codigo, setCodigo] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [generando, setGenerando] = useState(false);
@@ -64,6 +66,7 @@ export function MfaEnrollForm() {
 
     setFactorId(data.id);
     setSecreto(data.totp.secret);
+    setQrCode(data.totp.qr_code);
   }
 
   async function onSubmit(evento: React.FormEvent<HTMLFormElement>) {
@@ -106,8 +109,20 @@ export function MfaEnrollForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      {qrCode ? (
+        <div className="flex justify-center">
+          {/* eslint-disable-next-line @next/next/no-img-element -- data URL: next/image no la optimiza y no aplica aquí. */}
+          <img
+            src={dataUriQrTotp(qrCode)}
+            alt="Código QR para inscribir el segundo factor"
+            width={200}
+            height={200}
+          />
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-2">
-        <Label htmlFor="secreto-totp">Clave secreta (ingrésala manualmente en tu app)</Label>
+        <Label htmlFor="secreto-totp">Clave secreta (si no puedes escanear el QR, ingrésala manualmente)</Label>
         <Input
           id="secreto-totp"
           readOnly
