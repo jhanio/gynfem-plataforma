@@ -9,13 +9,14 @@ interface PacienteTabsProps {
   rol: Rol;
   datos: ReactNode;
   citas: ReactNode;
+  historia?: ReactNode;
 }
 
 function PlaceholderTab({ texto }: { texto: string }) {
   return <p className="py-8 text-center text-muted-foreground">{texto}</p>;
 }
 
-export function PacienteTabs({ rol, datos, citas }: PacienteTabsProps) {
+export function PacienteTabs({ rol, datos, citas, historia }: PacienteTabsProps) {
   const puedeVerHistoria = rol === "medico" || rol === "obstetra";
 
   return (
@@ -34,9 +35,7 @@ export function PacienteTabs({ rol, datos, citas }: PacienteTabsProps) {
       <TabsContent value="citas">{citas}</TabsContent>
 
       {puedeVerHistoria ? (
-        <TabsContent value="historia">
-          <PlaceholderTab texto="La historia clínica se implementará en la Fase 5." />
-        </TabsContent>
+        <TabsContent value="historia">{historia}</TabsContent>
       ) : null}
 
       <TabsContent value="seguimientos">

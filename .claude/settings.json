@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(npx supabase db push)",
+      "Bash(npx supabase db push:*)",
+      "Bash(supabase db push)",
+      "Bash(supabase db push:*)",
+      "Bash(npx supabase db reset --linked)",
+      "Bash(npx supabase db reset --linked:*)",
+      "Bash(supabase db reset --linked)",
+      "Bash(supabase db reset --linked:*)",
+      "Bash(npx supabase migration repair)",
+      "Bash(npx supabase migration repair:*)",
+      "Bash(supabase migration repair)",
+      "Bash(supabase migration repair:*)"
+    ]
+  }
+}

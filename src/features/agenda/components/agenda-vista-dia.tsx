@@ -4,9 +4,14 @@ import { CitaCard } from "./cita-card";
 interface AgendaVistaDiaProps {
   citas: CitaAgenda[];
   mostrarProfesional?: boolean;
+  puedeAtender?: boolean;
 }
 
-export function AgendaVistaDia({ citas, mostrarProfesional = false }: AgendaVistaDiaProps) {
+export function AgendaVistaDia({
+  citas,
+  mostrarProfesional = false,
+  puedeAtender = false,
+}: AgendaVistaDiaProps) {
   if (citas.length === 0) {
     return (
       <p className="py-8 text-center text-muted-foreground">
@@ -18,7 +23,12 @@ export function AgendaVistaDia({ citas, mostrarProfesional = false }: AgendaVist
   return (
     <ul className="flex flex-col gap-2">
       {citas.map((cita) => (
-        <CitaCard key={cita.id} cita={cita} mostrarProfesional={mostrarProfesional} />
+        <CitaCard
+          key={cita.id}
+          cita={cita}
+          mostrarProfesional={mostrarProfesional}
+          puedeAtender={puedeAtender}
+        />
       ))}
     </ul>
   );

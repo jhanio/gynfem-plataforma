@@ -52,7 +52,8 @@ npx supabase gen types typescript --linked > src/types/database.types.ts
 
 ### Base de datos
 - Cambios de esquema solo con `supabase migration new`. Nunca edites una migración ya aplicada: crea otra.
-- Tras cada migración, regenera `src/types/database.types.ts`.
+- Nunca ejecutes comandos que modifiquen la base de datos remota; solo crea las migraciones y avísame para aplicarlas.
+- Tras cada migración, regenera `src/types/database.types.ts` solo después de que el usuario confirme que la aplicó.
 - Fechas en `timestamptz`; se muestran en `America/Lima`.
 - Error `23P01` en citas = cruce de horario del profesional → mensaje: "El profesional ya tiene una cita en ese horario".
 
