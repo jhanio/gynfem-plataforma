@@ -18,6 +18,11 @@ import { EliminarPacienteDialog } from "@/features/pacientes/components/eliminar
 import { CitasPaciente } from "@/features/pacientes/components/citas-paciente";
 import { HistoriaClinica } from "@/features/historias/components/historia-clinica";
 import { TIPO_DOCUMENTO_LABELS } from "@/features/pacientes/labels";
+import {
+  listarResponsablesSeguimiento,
+  listarSeguimientosPaciente,
+} from "@/features/seguimientos/queries";
+import { SeguimientosPaciente } from "@/features/seguimientos/components/seguimientos-paciente";
 
 // La ficha registra acceso clínico para roles médicos: siempre dinámica.
 export const dynamic = "force-dynamic";
@@ -46,6 +51,11 @@ export default async function FichaPacientePage({
     />
   ) : undefined;
 
+  const [seguimientos, responsables] = await Promise.all([
+    listarSeguimientosPaciente(paciente.id),
+    listarResponsablesSeguimiento(),
+  ]);
+
   return (
     <Card>
       <CardHeader>
@@ -73,6 +83,14 @@ export default async function FichaPacientePage({
           datos={<PacienteFormulario paciente={paciente} />}
           citas={<CitasPaciente citas={citas} />}
           historia={historia}
+          seguimientos={
+            <SeguimientosPaciente
+              pacienteId={paciente.id}
+              seguimientos={seguimientos}
+              responsables={responsables}
+              puedeCrear={puedeVerHistoria}
+            />
+          }
         />
       </CardContent>
     </Card>

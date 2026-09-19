@@ -12,6 +12,7 @@ import { requireRol } from "@/lib/auth/guards";
 import { obtenerAtencion } from "@/features/atenciones/queries";
 import { AtencionEditor } from "@/features/atenciones/components/atencion-editor";
 import { AtencionDetalle } from "@/features/atenciones/components/atencion-detalle";
+import { listarResponsablesSeguimiento } from "@/features/seguimientos/queries";
 
 // Datos clínicos: siempre dinámico, sin caché compartida.
 export const dynamic = "force-dynamic";
@@ -73,7 +74,10 @@ export default async function AtencionPage({ params }: AtencionPageProps) {
         {esBorradorPropio ? (
           <AtencionEditor atencion={atencion} />
         ) : (
-          <AtencionDetalle atencion={atencion} />
+          <AtencionDetalle
+            atencion={atencion}
+            responsables={await listarResponsablesSeguimiento()}
+          />
         )}
       </CardContent>
     </Card>

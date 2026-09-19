@@ -662,7 +662,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generar_recordatorios_citas: { Args: never; Returns: number }
+      generar_recordatorios_citas: {
+        Args: { p_sede?: string }
+        Returns: number
+      }
       kpi_resumen: { Args: { p_desde: string; p_hasta: string }; Returns: Json }
       registrar_acceso_historia: {
         Args: { p_paciente_id: string }
