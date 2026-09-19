@@ -186,15 +186,7 @@ export async function restablecerMfa(input: unknown): Promise<Resultado<null>> {
   // Con la sesión del admin (no con el cliente admin) para que auth.uid()
   // capture al actor real en la auditoría.
   const supabase = await createClient();
-  // registrar_reset_mfa aún no existe en database.types.ts: el tipo se
-  // regenera recién cuando el usuario aplique la migración
-  // 20260919170000_mfa_aal2_auditoria.sql (ver CLAUDE.md). Cast puntual
-  // mientras tanto.
-  const rpc = supabase.rpc as unknown as (
-    fn: "registrar_reset_mfa",
-    args: { p_usuario_id: string },
-  ) => PromiseLike<{ error: { message: string } | null }>;
-  await rpc("registrar_reset_mfa", { p_usuario_id: parsed.data.usuarioId });
+  await supabase.rpc("registrar_reset_mfa", { p_usuario_id: parsed.data.usuarioId });
 
   revalidatePath("/admin/usuarios");
   return ok(null);

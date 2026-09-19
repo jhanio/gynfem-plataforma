@@ -681,10 +681,15 @@ export type Database = {
         Args: { p_paciente_id: string }
         Returns: undefined
       }
+      registrar_reset_mfa: {
+        Args: { p_usuario_id: string }
+        Returns: undefined
+      }
       reprogramar_cita: {
         Args: { p_cita_id: string; p_motivo: string; p_nuevo_inicio: string }
         Returns: string
       }
+      requiere_aal2: { Args: never; Returns: boolean }
       tiene_rol: { Args: { roles: string[] }; Returns: boolean }
     }
     Enums: {
