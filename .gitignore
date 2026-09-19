@@ -14,6 +14,9 @@
 /coverage
 /playwright-report
 /test-results
+# storageState de Playwright: contiene cookies de sesión (aunque sean de
+# usuarios ficticios de prueba, no deben quedar en el repositorio).
+/tests/e2e/.auth
 
 # next.js
 /.next/
