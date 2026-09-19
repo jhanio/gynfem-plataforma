@@ -34,7 +34,10 @@ values
   ('7a000000-0000-0000-0000-000000000006', '70000006', 'CitaHoy',          'Seis',  '987666666', true,  true, now()),
   ('7a000000-0000-0000-0000-000000000007', '70000007', 'Elegible',         'Siete', '987777777', true,  true, now());
 
--- Citas de "mañana" (hora de Lima) para P1..P5 y P7; P6 tiene su cita "hoy".
+-- Citas de "mañana" (hora de Lima) para P1..P5; P6 tiene su cita "hoy".
+-- La cita de P7 se crea más abajo, recién antes de la llamada manual de la
+-- asistente: si existiera desde el inicio, la propia llamada del cron ya la
+-- tomaría como elegible y contaminaría ambas aserciones (HU-15/HU-16).
 insert into public.citas (id, paciente_id, profesional_id, servicio_id, inicio, fin)
 values
   ('7c000000-0000-0000-0000-000000000001', '7a000000-0000-0000-0000-000000000001',
@@ -60,11 +63,7 @@ values
   ('7c000000-0000-0000-0000-000000000006', '7a000000-0000-0000-0000-000000000006',
    '71111111-1111-1111-1111-111111111111', '75000000-0000-0000-0000-000000000001',
    (((now() at time zone 'America/Lima')::date::text || ' 08:00:00')::timestamp at time zone 'America/Lima'),
-   (((now() at time zone 'America/Lima')::date::text || ' 08:30:00')::timestamp at time zone 'America/Lima')),
-  ('7c000000-0000-0000-0000-000000000007', '7a000000-0000-0000-0000-000000000007',
-   '71111111-1111-1111-1111-111111111111', '75000000-0000-0000-0000-000000000001',
-   ((((now() at time zone 'America/Lima')::date + 1)::text || ' 13:00:00')::timestamp at time zone 'America/Lima'),
-   ((((now() at time zone 'America/Lima')::date + 1)::text || ' 13:30:00')::timestamp at time zone 'America/Lima'));
+   (((now() at time zone 'America/Lima')::date::text || ' 08:30:00')::timestamp at time zone 'America/Lima'));
 
 -- P5 ya tiene un recordatorio activo para su cita de mañana: no debe duplicarse.
 insert into public.recordatorios (paciente_id, cita_id, canal, programado_para, mensaje, estado)
@@ -101,6 +100,16 @@ select is((select count(*)::int from public.recordatorios where paciente_id = '7
   'excluye citas que son hoy (solo genera para "mañana")');
 select is((select count(*)::int from public.recordatorios where cita_id = '7c000000-0000-0000-0000-000000000005'), 1,
   'no duplica recordatorio si ya existe uno activo para la cita');
+
+-- Recién ahora se crea la cita de P7 (mañana), para que sea la única
+-- elegible en la llamada manual de más abajo: si existiera desde el
+-- inicio, la propia llamada del cron ya la habría tomado como elegible
+-- y contaminado las aserciones anteriores.
+insert into public.citas (id, paciente_id, profesional_id, servicio_id, inicio, fin)
+values ('7c000000-0000-0000-0000-000000000007', '7a000000-0000-0000-0000-000000000007',
+        '71111111-1111-1111-1111-111111111111', '75000000-0000-0000-0000-000000000001',
+        ((((now() at time zone 'America/Lima')::date + 1)::text || ' 13:00:00')::timestamp at time zone 'America/Lima'),
+        ((((now() at time zone 'America/Lima')::date + 1)::text || ' 13:30:00')::timestamp at time zone 'America/Lima'));
 
 -- =====================================================================
 -- Autorización con sesión: exige admin/asistente (RPC autenticado desde la app)
