@@ -26,7 +26,6 @@ jobs:
 
   database:
     runs-on: ubuntu-latest
-    continue-on-error: true # TODO(fase-2): quitar cuando la BD esté integrada
     steps:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
