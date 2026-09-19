@@ -19,6 +19,8 @@ import { resolve } from "node:path";
 
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
+import { generarPasswordTemporal as passwordTemporal } from "@/lib/auth/password";
+
 const PROYECTO_DEV_REF = "unlzfefbsltkkndfkeja";
 
 /** Carga variables de .env.local sin dependencias externas. */
@@ -43,10 +45,6 @@ function cargarEnvLocal(): void {
   } catch {
     // Si no existe .env.local, se usará el entorno del proceso.
   }
-}
-
-function passwordTemporal(): string {
-  return `Gy${Buffer.from(String(Math.random())).toString("base64url")}!9`;
 }
 
 const USUARIOS_DEMO = [

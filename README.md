@@ -45,8 +45,15 @@ npx tsx scripts/seed-demo.ts             # + 30 pacientes, citas, atenciones y s
   factor nuevo. Un admin no puede restablecer su propio MFA por este medio (evita bloqueos
   autoinfligidos); si el único admin pierde su dispositivo, la única salida es soporte directo de
   Supabase sobre el proyecto.
-- **Protección de contraseñas filtradas** (Supabase Auth → *Password protection* / *leaked
-  password protection*): se activa manualmente en el dashboard de `gynfem-dev`, no por migración.
+- **Política de contraseñas** (Supabase Auth → *Password requirements*): mínimo 10 caracteres,
+  con minúsculas, mayúsculas y números. Las contraseñas temporales que genera la plataforma
+  (`crearUsuario` y los scripts `crear-usuarios-demo.ts`/`seed-demo.ts`, vía
+  `src/lib/auth/password.ts`) siempre la cumplen por construcción, con test unitario.
+- **"Prevent use of leaked passwords"** (protección contra contraseñas filtradas, verificadas
+  contra HaveIBeenPwned): **requiere el plan Pro de Supabase**. En `gynfem-dev` (plan Free) queda
+  como limitación conocida del entorno de desarrollo — se activa manualmente en el dashboard
+  recién en el proyecto de producción, cuando el proyecto pase a Pro (ver `docs/ARCHITECTURE.md`
+  §7, entornos y costos).
 - Cabeceras de seguridad y Content-Security-Policy con nonce por request: ver `next.config.ts` y
   `src/proxy.ts`.
 - RLS en todas las tablas; ninguna tiene privilegio `DELETE` para `authenticated` (sin borrado

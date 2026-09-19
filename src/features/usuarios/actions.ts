@@ -1,9 +1,9 @@
 "use server";
 
-import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 
 import { requireRol } from "@/lib/auth/guards";
+import { generarPasswordTemporal } from "@/lib/auth/password";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { fallo, ok, type Resultado } from "@/lib/resultado";
@@ -18,11 +18,6 @@ import {
   validarCambioRol,
   validarRestablecerMfa,
 } from "./anti-bloqueo";
-
-/** Genera una contraseña temporal robusta. Solo se muestra una vez al admin. */
-function generarPasswordTemporal(): string {
-  return `Gy${randomBytes(9).toString("base64url")}!9`;
-}
 
 /**
  * Crea un usuario interno con rol y contraseña temporal.

@@ -11,9 +11,10 @@
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { randomBytes } from "node:crypto";
 
 import { createClient } from "@supabase/supabase-js";
+
+import { generarPasswordTemporal as passwordTemporal } from "@/lib/auth/password";
 
 /** Carga variables de .env.local sin dependencias externas. */
 function cargarEnvLocal(): void {
@@ -37,10 +38,6 @@ function cargarEnvLocal(): void {
   } catch {
     // Si no existe .env.local, se usará el entorno del proceso.
   }
-}
-
-function passwordTemporal(): string {
-  return `Gy${randomBytes(9).toString("base64url")}!9`;
 }
 
 const USUARIOS_DEMO = [
