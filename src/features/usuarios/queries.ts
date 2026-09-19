@@ -11,6 +11,7 @@ export interface UsuarioAdmin {
   rol: Rol;
   activo: boolean;
   createdAt: string;
+  mfaActivo: boolean;
 }
 
 /**
@@ -31,16 +32,18 @@ export async function listarUsuarios(): Promise<UsuarioAdmin[]> {
 
   const admin = createAdminClient();
   const { data } = await admin.auth.admin.listUsers({ perPage: 1000 });
-  const emailPorId = new Map(
-    (data?.users ?? []).map((u) => [u.id, u.email ?? null]),
-  );
+  const usuariosPorId = new Map((data?.users ?? []).map((u) => [u.id, u]));
 
-  return perfiles.map((p) => ({
-    id: p.id,
-    nombreCompleto: p.nombre_completo,
-    email: emailPorId.get(p.id) ?? null,
-    rol: p.rol,
-    activo: p.activo,
-    createdAt: p.created_at,
-  }));
+  return perfiles.map((p) => {
+    const usuario = usuariosPorId.get(p.id);
+    return {
+      id: p.id,
+      nombreCompleto: p.nombre_completo,
+      email: usuario?.email ?? null,
+      rol: p.rol,
+      activo: p.activo,
+      createdAt: p.created_at,
+      mfaActivo: (usuario?.factors ?? []).some((f) => f.status === "verified"),
+    };
+  });
 }

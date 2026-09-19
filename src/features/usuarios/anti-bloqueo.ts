@@ -29,3 +29,16 @@ export function validarActivacion(params: {
   }
   return ok(null);
 }
+
+export function validarRestablecerMfa(params: {
+  actorId: string;
+  objetivoId: string;
+}): Resultado<null> {
+  const { actorId, objetivoId } = params;
+  if (actorId === objetivoId) {
+    return fallo(
+      "No puedes restablecer tu propio MFA desde aquí: perderías el acceso a tu cuenta.",
+    );
+  }
+  return ok(null);
+}

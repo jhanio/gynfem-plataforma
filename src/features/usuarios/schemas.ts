@@ -35,6 +35,11 @@ export const activarUsuarioSchema = z.object({
   activo: z.boolean(),
 });
 
+export const restablecerMfaSchema = z.object({
+  usuarioId: z.string().uuid("Identificador de usuario no válido"),
+});
+
 export type CrearUsuarioInput = z.infer<typeof crearUsuarioSchema>;
 export type CambiarRolInput = z.infer<typeof cambiarRolSchema>;
 export type ActivarUsuarioInput = z.infer<typeof activarUsuarioSchema>;
+export type RestablecerMfaInput = z.infer<typeof restablecerMfaSchema>;

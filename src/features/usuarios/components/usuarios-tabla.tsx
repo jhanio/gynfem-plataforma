@@ -23,10 +23,12 @@ import {
 } from "@/components/ui/select";
 import { formatearFecha } from "@/lib/fechas";
 import type { Rol } from "@/lib/auth/roles";
+import { requiereMfa } from "@/lib/auth/mfa";
 import { activarDesactivar, cambiarRol } from "@/features/usuarios/actions";
 import { ROLES } from "@/features/usuarios/schemas";
 import { ROL_LABELS } from "@/features/usuarios/labels";
 import type { UsuarioAdmin } from "@/features/usuarios/queries";
+import { RestablecerMfaDialog } from "@/features/usuarios/components/restablecer-mfa-dialog";
 
 interface UsuariosTablaProps {
   usuarios: UsuarioAdmin[];
@@ -69,6 +71,7 @@ export function UsuariosTabla({ usuarios, actorId }: UsuariosTablaProps) {
           <TableHead>Correo</TableHead>
           <TableHead>Rol</TableHead>
           <TableHead>Estado</TableHead>
+          <TableHead>MFA</TableHead>
           <TableHead>Alta</TableHead>
           <TableHead className="text-right">Acciones</TableHead>
         </TableRow>
@@ -105,23 +108,40 @@ export function UsuariosTabla({ usuarios, actorId }: UsuariosTablaProps) {
                   {u.activo ? "Activo" : "Inactivo"}
                 </Badge>
               </TableCell>
+              <TableCell>
+                {requiereMfa(u.rol) ? (
+                  <Badge variant={u.mfaActivo ? "default" : "secondary"}>
+                    {u.mfaActivo ? "Activo" : "Sin inscribir"}
+                  </Badge>
+                ) : (
+                  <span className="text-xs text-muted-foreground">No aplica</span>
+                )}
+              </TableCell>
               <TableCell className="text-muted-foreground">
                 {formatearFecha(u.createdAt)}
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pendiente || esYoMismo}
-                  title={
-                    esYoMismo
-                      ? "No puedes cambiar el estado de tu propia cuenta"
-                      : undefined
-                  }
-                  onClick={() => onActivar(u.id, !u.activo)}
-                >
-                  {u.activo ? "Desactivar" : "Activar"}
-                </Button>
+                <div className="flex justify-end gap-2">
+                  {requiereMfa(u.rol) && u.mfaActivo && !esYoMismo ? (
+                    <RestablecerMfaDialog
+                      usuarioId={u.id}
+                      nombreCompleto={u.nombreCompleto}
+                    />
+                  ) : null}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={pendiente || esYoMismo}
+                    title={
+                      esYoMismo
+                        ? "No puedes cambiar el estado de tu propia cuenta"
+                        : undefined
+                    }
+                    onClick={() => onActivar(u.id, !u.activo)}
+                  >
+                    {u.activo ? "Desactivar" : "Activar"}
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           );

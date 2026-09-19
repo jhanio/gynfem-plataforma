@@ -11,8 +11,13 @@ import {
   activarUsuarioSchema,
   cambiarRolSchema,
   crearUsuarioSchema,
+  restablecerMfaSchema,
 } from "./schemas";
-import { validarActivacion, validarCambioRol } from "./anti-bloqueo";
+import {
+  validarActivacion,
+  validarCambioRol,
+  validarRestablecerMfa,
+} from "./anti-bloqueo";
 
 /** Genera una contraseña temporal robusta. Solo se muestra una vez al admin. */
 function generarPasswordTemporal(): string {
@@ -132,6 +137,64 @@ export async function activarDesactivar(
   if (error) {
     return fallo("No se pudo actualizar el estado del usuario.");
   }
+
+  revalidatePath("/admin/usuarios");
+  return ok(null);
+}
+
+/**
+ * Restablece el MFA de otro usuario: elimina sus factores TOTP inscritos
+ * (vía Auth Admin API, con la clave secreta) para que vuelva a pasar por
+ * /mfa/activar en su próximo inicio de sesión. Es la única salida cuando
+ * un usuario clínico pierde su dispositivo de autenticación: Supabase no
+ * ofrece un flujo de "recuperación" de MFA para el propio usuario.
+ */
+export async function restablecerMfa(input: unknown): Promise<Resultado<null>> {
+  const actor = await requireRol("admin");
+
+  const parsed = restablecerMfaSchema.safeParse(input);
+  if (!parsed.success) {
+    return fallo("Datos no válidos.");
+  }
+
+  const guard = validarRestablecerMfa({
+    actorId: actor.id,
+    objetivoId: parsed.data.usuarioId,
+  });
+  if (!guard.ok) {
+    return guard;
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.mfa.listFactors({
+    userId: parsed.data.usuarioId,
+  });
+  if (error) {
+    return fallo("No se pudo obtener los factores MFA del usuario.");
+  }
+
+  for (const factor of data.factors) {
+    const { error: errorBorrado } = await admin.auth.admin.mfa.deleteFactor({
+      id: factor.id,
+      userId: parsed.data.usuarioId,
+    });
+    if (errorBorrado) {
+      return fallo("No se pudo eliminar uno de los factores MFA del usuario.");
+    }
+  }
+
+  // Con la sesión del admin (no con el cliente admin) para que auth.uid()
+  // capture al actor real en la auditoría.
+  const supabase = await createClient();
+  // registrar_reset_mfa aún no existe en database.types.ts: el tipo se
+  // regenera recién cuando el usuario aplique la migración
+  // 20260919170000_mfa_aal2_auditoria.sql (ver CLAUDE.md). Cast puntual
+  // mientras tanto.
+  const rpc = supabase.rpc as unknown as (
+    fn: "registrar_reset_mfa",
+    args: { p_usuario_id: string },
+  ) => PromiseLike<{ error: { message: string } | null }>;
+  await rpc("registrar_reset_mfa", { p_usuario_id: parsed.data.usuarioId });
 
   revalidatePath("/admin/usuarios");
   return ok(null);
