@@ -667,6 +667,16 @@ export type Database = {
         Returns: number
       }
       kpi_resumen: { Args: { p_desde: string; p_hasta: string }; Returns: Json }
+      pacientes_posibles_duplicados: {
+        Args: never
+        Returns: {
+          apellidos: string
+          cantidad: number
+          fecha_nacimiento: string
+          nombres: string
+          paciente_ids: string[]
+        }[]
+      }
       registrar_acceso_historia: {
         Args: { p_paciente_id: string }
         Returns: undefined

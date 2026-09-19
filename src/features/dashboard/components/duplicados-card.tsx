@@ -9,14 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatearFechaISO } from "@/lib/fechas";
-
-export interface GrupoDuplicado {
-  nombres: string;
-  apellidos: string;
-  fechaNacimiento: string;
-  cantidad: number;
-  pacienteIds: string[];
-}
+import type { GrupoDuplicado } from "../dominio";
 
 interface DuplicadosCardProps {
   grupos: GrupoDuplicado[];

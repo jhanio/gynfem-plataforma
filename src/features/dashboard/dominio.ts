@@ -124,3 +124,30 @@ export function mapearKpiResumen(json: unknown): KpiResumen {
     atencionesPorServicio,
   };
 }
+
+export interface GrupoDuplicado {
+  nombres: string;
+  apellidos: string;
+  fechaNacimiento: string;
+  cantidad: number;
+  pacienteIds: string[];
+}
+
+interface FilaPosibleDuplicado {
+  nombres: string;
+  apellidos: string;
+  fecha_nacimiento: string;
+  cantidad: number;
+  paciente_ids: string[];
+}
+
+/** Convierte las filas de rpc('pacientes_posibles_duplicados') a camelCase (KPI-07). */
+export function mapearGruposDuplicados(filas: readonly FilaPosibleDuplicado[]): GrupoDuplicado[] {
+  return filas.map((f) => ({
+    nombres: f.nombres,
+    apellidos: f.apellidos,
+    fechaNacimiento: f.fecha_nacimiento,
+    cantidad: f.cantidad,
+    pacienteIds: f.paciente_ids,
+  }));
+}

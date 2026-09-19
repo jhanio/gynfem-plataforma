@@ -1,5 +1,10 @@
 import { describe, expect, test } from "vitest";
-import { calcularPorcentajeDuplicados, calcularRangoFechas, mapearKpiResumen } from "./dominio";
+import {
+  calcularPorcentajeDuplicados,
+  calcularRangoFechas,
+  mapearGruposDuplicados,
+  mapearKpiResumen,
+} from "./dominio";
 
 const HOY = "2026-09-19";
 
@@ -92,5 +97,32 @@ describe("mapearKpiResumen", () => {
     expect(mapearKpiResumen(null).citasTotal).toBe(0);
     expect(mapearKpiResumen(null).citasPorDia).toEqual([]);
     expect(mapearKpiResumen("no-es-objeto").atencionesPorServicio).toEqual([]);
+  });
+});
+
+describe("mapearGruposDuplicados", () => {
+  test("convierte las filas de pacientes_posibles_duplicados a camelCase", () => {
+    const filas = [
+      {
+        nombres: "Maria Jose",
+        apellidos: "Lopez Rios",
+        fecha_nacimiento: "1990-05-10",
+        cantidad: 2,
+        paciente_ids: ["id-1", "id-2"],
+      },
+    ];
+    expect(mapearGruposDuplicados(filas)).toEqual([
+      {
+        nombres: "Maria Jose",
+        apellidos: "Lopez Rios",
+        fechaNacimiento: "1990-05-10",
+        cantidad: 2,
+        pacienteIds: ["id-1", "id-2"],
+      },
+    ]);
+  });
+
+  test("devuelve un arreglo vacío si no hay grupos", () => {
+    expect(mapearGruposDuplicados([])).toEqual([]);
   });
 });
